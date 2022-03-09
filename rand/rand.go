@@ -16,13 +16,33 @@ type Rand struct {
 	candidates []interface{}
 }
 
-func New() *Rand {
+type Option func(*Rand)
+
+func WithRandSeed(seed int64) Option {
+	return func(r *Rand) {
+		r.inner = rand.New(rand.NewSource(seed))
+	}
+}
+
+func WithStrSeed(str string) Option {
+	return func(r *Rand) {
+		r.strSeed = str
+	}
+}
+
+func New(opts ...Option) *Rand {
 	defaultSeed := time.Now().Unix()
 
-	return &Rand{
+	r := &Rand{
 		inner:   rand.New(rand.NewSource(defaultSeed)),
 		strSeed: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890",
 	}
+
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	return r
 }
 
 func (r *Rand) Seed(seed int64) {
